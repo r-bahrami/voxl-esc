@@ -51,83 +51,94 @@ baudrate      = args.baud_rate
 params_file   = args.params_file
 params_filter = args.params_filter
 
+if devpath is not None and baudrate is None:
+    print 'ERROR: Please provide baud rate with --baud-rate option'
+    sys.exit(1)
+
 if devpath is None:
+    print 'INFO: Device and baud rate are not provided, attempting to autodetect..'
     scanner = SerialScanner()
     (devpath, baudrate) = scanner.scan()
 
     if devpath is not None and baudrate is not None:
         print ''
-        print 'ESC(s) detected on port: ' + devpath + ' using baudrate: ' + str(baudrate)
-        print 'Attempting to open...'
+        print 'INFO: ESC(s) detected on port: ' + devpath + ' using baudrate: ' + str(baudrate)
+        print 'INFO: Attempting to open...'
     else:
-        print 'No ESC(s) detected, exiting.'
+        print 'ERROR: No ESC(s) detected, exiting.'
         sys.exit(1)
 
 # create ESC manager and search for ESCs
-manager = EscManager()
-manager.open(devpath, baudrate)
-time.sleep(0.2)
-escs = manager.get_escs()
+try:
+    esc_manager = EscManager()
+    esc_manager.open(devpath, baudrate)
+except Exception as e:
+    print 'ERROR: Unable to connect to ESCs :'
+    print e
+    sys.exit(1)
+
+time.sleep(0.25)
+escs = esc_manager.get_escs()
 esc_ids = [e.get_id() for e in escs]
 if len(escs) == 0:
-    print 'No ESCs detected, exiting.'
-    manager.close()
+    print 'ERROR: No ESCs detected, exiting.'
+    esc_manager.close()
     sys.exit(0)
-print 'ESCs detected:'
-print '---------------------'
-time.sleep(0.2)
-for e in manager.get_escs():
+print 'INFO: ESCs detected:'
+print 'INFO: ---------------------'
+
+for e in esc_manager.get_escs():
     versions = e.get_versions()
     print 'ID: %d, SW: %d, HW: %d' % (e.get_id(), versions[0], versions[1])
 print '---------------------'
 
-esc = manager.esc_dummy
+esc = esc_manager.esc_dummy
 
 # check for .xml or .eep (binary) config files
 filename, file_extension = os.path.splitext(params_file)
 if os.path.isfile(params_file) and file_extension == '.xml':
-    print 'Loading XML config file...'
+    print 'INFO: Loading XML config file...'
     with open(params_file, 'r') as file:
         xml_string = file.read()
         esc.params.parse_xml_string( xml_string )
 
 elif os.path.isfile(params_file) and file_extension == '.eep':
-    print 'Loading EEP config file...'
+    print 'INFO: Loading EEP config file...'
     with open(params_file, 'rb') as file:
         param_bytes = file.read()
         esc.params.parse_params_all( param_bytes )
 else:
-    print 'Unsupported file type, exiting.'
-    manager.close()
-    sys.exit(0)
+    print 'ERROR: Unsupported file type, exiting.'
+    esc_manager.close()
+    sys.exit(1)
 
-print 'Uploading params...'
+print 'INFO: Uploading params...'
 
 if 'all' in params_filter or 'board' in params_filter:
     print '-- board config'
-    manager.push_config_data(types.ESC_PACKET_TYPE_BOARD_CONFIG)
+    esc_manager.push_config_data(types.ESC_PACKET_TYPE_BOARD_CONFIG)
     time.sleep(0.1)
 
 if 'all' in params_filter or 'id' in params_filter:
     print '-- id config'
-    manager.push_config_data(types.ESC_PACKET_TYPE_ID_CONFIG)
+    esc_manager.push_config_data(types.ESC_PACKET_TYPE_ID_CONFIG)
     time.sleep(0.1)
 
 if 'all' in params_filter or 'uart' in params_filter:
     print '-- uart config'
-    manager.push_config_data(types.ESC_PACKET_TYPE_UART_CONFIG)
+    esc_manager.push_config_data(types.ESC_PACKET_TYPE_UART_CONFIG)
     time.sleep(0.1)
 
 if 'all' in params_filter or 'tune' in params_filter:
     print '-- tune config'
-    manager.push_config_data(types.ESC_PACKET_TYPE_TUNE_CONFIG)
+    esc_manager.push_config_data(types.ESC_PACKET_TYPE_TUNE_CONFIG)
     time.sleep(0.1)
 
 print '    DONE'
 # sleep before final reset
 time.sleep(1)
 # reset all ESCs
-print 'Resetting...'
-manager.reset_all()
+print 'INFO: Resetting ESCs...'
+esc_manager.reset_all()
 print '    DONE'
-manager.close()
+esc_manager.close()

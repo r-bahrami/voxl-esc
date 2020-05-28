@@ -53,30 +53,35 @@ esc_id   = args.id
 PWM_MIN  = args.pwm_min
 PWM_MAX  = args.pwm_max
 
+if devpath is not None and baudrate is None:
+    print 'ERROR: Please provide baud rate with --baud-rate option'
+    sys.exit(1)
+
 if devpath is None:
+    print 'INFO: Device and baud rate are not provided, attempting to autodetect..'
     scanner = SerialScanner()
     (devpath, baudrate) = scanner.scan()
 
     if devpath is not None and baudrate is not None:
         print ''
-        print 'ESC(s) detected on port: ' + devpath + ' using baudrate: ' + str(baudrate)
-        print 'Attempting to open...'
+        print 'INFO: ESC(s) detected on port: ' + devpath + ' using baudrate: ' + str(baudrate)
+        print 'INFO: Attempting to open...'
     else:
-        print 'No ESC(s) detected, exiting.'
-        sys.exit(0)
+        print 'ERROR: No ESC(s) detected, exiting.'
+        sys.exit(1)
 
 #check input arguments
 if PWM_MIN < 10 or PWM_MIN > 50:
-    print 'start power must be between 10 and 50'
-    sys.exit(0)
+    print 'ERROR: Minimum power must be between 10 and 50'
+    sys.exit(1)
 
 if PWM_MAX < 10 or PWM_MAX > 100:
-    print 'end power must be between 10 and 100'
-    sys.exit(0)
+    print 'ERROR: Maximum power must be between 10 and 100'
+    sys.exit(1)
 
 if PWM_MAX < PWM_MIN:
-    print 'end power must be greater than start power'
-    sys.exit(0)
+    print 'ERROR: Maximum power must be greater than minimum power'
+    sys.exit(1)
 
 # PWM goal
 PWM_STEP       = 1
@@ -84,20 +89,25 @@ STEPDURATION   = 0.50 #seconds
 TRANSITIONTIME = 0.40
 
 # create ESC manager and search for ESCs
-manager = EscManager()
-manager.open(devpath, baudrate)
+try:
+    esc_manager = EscManager()
+    esc_manager.open(devpath, baudrate)
+except Exception as e:
+    print 'ERROR: Unable to connect to ESCs :'
+    print e
+    sys.exit(1)
 
 # wait a little to let manager find all ESCs
-time.sleep(1)
-num_escs = len(manager.get_escs())
+time.sleep(0.25)
+num_escs = len(esc_manager.get_escs())
 if num_escs < 1:
-    print 'No ESCs detected--exiting.'
-    sys.exit(0)
+    print 'ERROR: No ESCs detected--exiting.'
+    sys.exit(1)
 
-esc = manager.get_esc_by_id(esc_id)
+esc = esc_manager.get_esc_by_id(esc_id)
 if esc is None:
-    print 'Specified ESC ID not found--exiting.'
-    sys.exit(0)
+    print 'ERROR: Specified ESC ID not found--exiting.'
+    sys.exit(1)
 
 # warn user
 print 'WARNING: '
@@ -113,18 +123,18 @@ print ''
 response = raw_input('Type "Yes" to continue: ')
 if response not in ['yes', 'Yes', 'YES']:
     print 'Test canceled by user'
-    sys.exit(0)
+    sys.exit(1)
 
 # get ESC software version. sw_version < 20 means gen1 ESC, otherwise gen2
 sw_version = esc.get_versions()[0]
 
 # spin up
-manager.set_highspeed_fb(esc_id)  #tell ESC manager to only request feedback from this ID (so we get feedback 4x more often)
+esc_manager.set_highspeed_fb(esc_id)  #tell ESC manager to only request feedback from this ID (so we get feedback 4x more often)
 esc.set_target_power(10)
 t_start = time.time()
 while time.time() - t_start < 1.0:
     time.sleep(0.05)
-    manager.send_pwm_targets()
+    esc_manager.send_pwm_targets()
 
 measurements = []
 t_test_start= time.time()
@@ -137,7 +147,7 @@ while pwm_now < PWM_MAX:
     print ''
     while time.time() - t_start < STEPDURATION:
         time.sleep(0.01)
-        manager.send_pwm_targets()
+        esc_manager.send_pwm_targets()
         if pwm_now >= PWM_MIN and time.time() - t_start >= TRANSITIONTIME:
             measurements.append(
                 [esc.get_power(), esc.get_rpm(), esc.get_voltage(), esc.get_current()])
@@ -145,9 +155,9 @@ while pwm_now < PWM_MAX:
     pwm_now += PWM_STEP
 
 # close the manager and UART thread
-manager.close()
+esc_manager.close()
 t_test_stop= time.time()
-print 'Test took %.2f seconds' % (t_test_stop-t_test_start)
+print 'INFO: Test took %.2f seconds' % (t_test_stop-t_test_start)
 
 # parse measurements
 pwms     = [data[0] for data in measurements]
@@ -177,7 +187,7 @@ print '    pwm_vs_rpm_curve_a2 = ' + str(ply[0])
 try:
   import matplotlib.pyplot as plt
 except:
-  print('In order to plot the results, install the Python "matplotlib" module')
+  print 'WARNING: In order to plot the results, install the Python "matplotlib" module'
   sys.exit(0)
 
 # plot the results

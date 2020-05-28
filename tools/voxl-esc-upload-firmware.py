@@ -34,7 +34,8 @@
 import sys
 sys.path.append('./voxl-esc-tools-bin')
 
-from libesc.escmanager import EscManager
+#from libesc.escmanager import EscManager
+from libesc import *
 import time
 import numpy as np
 from libesc.esctypes import EscTypes as types
@@ -55,6 +56,20 @@ bootloader_baud_rate = args.bootloader_baud_rate
 firmware_file        = args.firmware_file
 esc_id               = args.id
 
+# if the device path is not provided, attempt to find a device with ESCs
+if devpath is None:
+    print 'INFO: Device and baud rate are not provided, attempting to autodetect..'
+    scanner = SerialScanner()
+    (devpath, firmware_baud_rate) = scanner.scan()
+
+    if devpath is not None and firmware_baud_rate is not None:
+        print ''
+        print 'INFO: ESC(s) detected on port: ' + devpath + ' using baudrate: ' + str(firmware_baud_rate)
+        print 'INFO: Attempting to open...'
+    else:
+        print 'ERROR: No ESC(s) detected, exiting.'
+        sys.exit(1)
+
 # load file
 f = open(firmware_file, "rb")
 firmware_binary = []
@@ -64,36 +79,47 @@ try:
         firmware_binary.append(ord(byte))
         byte = f.read(1)
 except:
-    print('Unable to open firmware file')
-    sys.exit(0)
+    print 'ERROR: Unable to open firmware file %s' % (firmware_file)
+    sys.exit(1)
 finally:
     f.close()
 
-# reset
-manager = EscManager()
-manager.open(devpath, firmware_baud_rate)
-time.sleep(0.50)
-escs = manager.get_escs()
+# reset the required ESC so that it can enter bootloader
+try:
+    esc_manager = EscManager()
+    esc_manager.open(devpath, firmware_baud_rate)
+except Exception as e:
+    print 'WARNING: Unable to connect to ESCs in order to reset them..:'
+    print e
+    print 'WARGING: Attempting to continue'
+
+    #since we did not find ESCs with firmware, we can't send the reset message
+    #so, just try to establish communication with bootloader
+    esc_manager.open(devpath, bootloader_baud_rate)
+
+time.sleep(0.25)
+escs = esc_manager.get_escs()
 esc_ids = [e.get_id() for e in escs]
 if not esc_id in esc_ids:
-    print('Specified ESC ID not detected; perform manual power cycle now')
+    print 'WARNING: Specified ESC ID not detected; perform manual power cycle now'
 else:
-    manager.reset_id(esc_id)
+    esc_manager.reset_id(esc_id)
     time.sleep(0.25)
 
 # switch to bootloader protocol
-manager.set_protocol(types.ESC_PROTOCOL_BOOTLOADER)
-manager.set_baudrate(bootloader_baud_rate)
+esc_manager.set_protocol(types.ESC_PROTOCOL_BOOTLOADER)
+esc_manager.set_baudrate(bootloader_baud_rate)
 
 print('')
-for progress in manager.upload_firmware(firmware_binary, esc_id):
+for progress in esc_manager.upload_firmware(firmware_binary, esc_id):
     if progress == -1:
-        print('An error occured during the write process.')
-        sys.exit(0)
+        print 'ERROR: An error occured during the write process.'
+        sys.exit(1)
     else:
         bar_length = 50
         bar_completed_length = int(bar_length*progress)
         progress_bar = '#' * bar_completed_length + ' ' * (bar_length-bar_completed_length)
         print('\033[FProgress: %3d%% [%s]' % ((100 * progress),progress_bar))
 
-manager.close()
+esc_manager.close()
+print 'INFO: Firmware successfully updated for ESC id %d' % (esc_id)

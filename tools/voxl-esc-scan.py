@@ -45,36 +45,43 @@ args = parser.parse_args()
 devpath  = args.device
 baudrate = args.baud_rate
 
+if devpath is not None and baudrate is None:
+    print 'ERROR: Please provide baud rate with --baud-rate option'
+    sys.exit(1)
+
 if devpath is None:
+    print 'INFO: Device and baud rate are not provided, attempting to autodetect..'
     scanner = SerialScanner()
     (devpath, baudrate) = scanner.scan()
 
     if devpath is not None and baudrate is not None:
         print ''
-        print 'ESC(s) detected on port: ' + devpath + ' using baudrate: ' + str(baudrate)
-        print 'Attempting to open...'
+        print 'INFO: ESC(s) detected on port: ' + devpath + ' using baudrate: ' + str(baudrate)
+        print 'INFO: Attempting to open...'
     else:
-        print 'No ESC(s) detected, exiting.'
-        sys.exit(0)
+        print 'ERROR: No ESC(s) detected, exiting.'
+        sys.exit(1)
 
 try:
     esc_manager = EscManager()
     esc_manager.open(devpath, baudrate)
 except Exception as e:
-    print 'Unable to open serial port'
-    sys.exit(0)
+    print 'ERROR: Unable to connect to ESCs :'
+    print e
+    sys.exit(1)
 
+# wait a little to let manager find all ESCs
 time.sleep(0.25)
 
-print 'Detected ESCs With Firmware:'
-print '---------------------'
+print 'INFO: Detected ESCs With Firmware:'
+print 'INFO: ---------------------'
 time.sleep(0.2)
 for e in esc_manager.get_escs():
     versions = e.get_versions()
     hardware_name = 'Unknown Board'
     if versions[1] == 30:
         hardware_name = 'ModalAi 4-in-1 ESC V2 RevA'
-    print 'ID: %d, SW: %d, HW: %d (%s)' % (e.get_id(), versions[0], versions[1],hardware_name)
+    print 'INFO: ID: %d, SW: %d, HW: %d (%s)' % (e.get_id(), versions[0], versions[1],hardware_name)
 print '---------------------'
 
 esc_manager.close()

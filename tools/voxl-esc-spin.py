@@ -66,50 +66,60 @@ led_blue = int(args.led_blue > 0)
 #optionally skip the safety prompt that asks to enter "yes" before spinning
 skip_prompt = 'True' in args.skip_prompt or 'true' in args.skip_prompt
 
+if devpath is not None and baudrate is None:
+    print 'ERROR: Please provide baud rate with --baud-rate option'
+    sys.exit(1)
+
 if spin_pwr < 0 or spin_pwr > 100:
-    print "spin power must be between 0 and 100"
+    print "ERROR: Spin power must be between 0 and 100"
     sys.exit(1)
 
 if spin_rpm is not None and (spin_rpm < 0 or spin_rpm > 30000):
-    print "spin rpm must be between 0 and 30000"
+    print "ERROR: Spin rpm must be between 0 and 30000"
     sys.exit(1)
 
 if timeout < 0:
-    print "timeout should be non-negative value of seconds"
+    print "ERROR: Timeout should be non-negative value of seconds"
     sys.exit(1)
 
 if devpath is None:
+    print 'INFO: Device and baud rate are not provided, attempting to autodetect..'
     scanner = SerialScanner()
     (devpath, baudrate) = scanner.scan()
 
     if devpath is not None and baudrate is not None:
         print ''
-        print 'ESC(s) detected on port: ' + devpath + ' using baudrate: ' + str(baudrate)
-        print 'Attempting to open...'
+        print 'INFO: ESC(s) detected on port: ' + devpath + ' using baudrate: ' + str(baudrate)
+        print 'INFO: Attempting to open...'
     else:
-        print 'No ESC(s) detected, exiting.'
+        print 'ERROR: No ESC(s) detected, exiting.'
         sys.exit(1)
 
 # create ESC manager and search for ESCs
-manager = EscManager()
-manager.open(devpath, baudrate)
+try:
+    esc_manager = EscManager()
+    esc_manager.open(devpath, baudrate)
+except Exception as e:
+    print 'ERROR: Unable to connect to ESCs :'
+    print e
+    sys.exit(1)
 
 # wait a little to let manager find all ESCs
-time.sleep(1)
-num_escs = len(manager.get_escs())
+time.sleep(0.25)
+num_escs = len(esc_manager.get_escs())
 if num_escs < 1:
-    print 'No ESCs detected--exiting.'
-    sys.exit(0)
+    print 'ERROR: No ESCs detected--exiting.'
+    sys.exit(1)
 
 escs = []
 if esc_id != 255:
-    esc = manager.get_esc_by_id(esc_id)
+    esc = esc_manager.get_esc_by_id(esc_id)
     if esc is None:
-        print 'Specified ESC ID not found--exiting.'
-        sys.exit(0)
+        print 'ERROR: Specified ESC ID not found--exiting.'
+        sys.exit(1)
     escs.append(esc)
 else:
-    escs = manager.get_escs()
+    escs = esc_manager.get_escs()
 
 # warn user
 if not skip_prompt:
@@ -126,11 +136,11 @@ if not skip_prompt:
     response = raw_input('Type "Yes" to continue: ')
     if response not in ['yes', 'Yes', 'YES']:
         print 'Test canceled by user'
-        sys.exit(0)
+        sys.exit(1)
 
 # spin up
 if esc_id != 255:
-    manager.set_highspeed_fb(esc_id)  #tell ESC manager to only request feedback from this ID (so we get feedback 4x more often)
+    esc_manager.set_highspeed_fb(esc_id)  #tell ESC manager to only request feedback from this ID (so we get feedback 4x more often)
 
 for esc in escs:
     esc.set_leds([led_red, led_green, led_blue])  #0 or 1 for R G and B values.. binary for now
@@ -144,11 +154,11 @@ while time.time() - t_start < timeout:
     if spin_rpm is not None:
         for esc in escs:
             esc.set_target_rpm(spin_rpm)
-        manager.send_rpm_targets()
+        esc_manager.send_rpm_targets()
     else:
         for esc in escs:
             esc.set_target_power(spin_pwr)
-        manager.send_pwm_targets()
+        esc_manager.send_pwm_targets()
 
     for esc in escs:
         print '[%d] RPM: %.0f, PWR: %.0f, VBAT: %.2fV, TEMPERATURE: %.2fC, CURRENT: %.2fA' % (esc.get_id(), esc.get_rpm(), esc.get_power(), esc.get_voltage(), esc.get_temperature(), esc.get_current())

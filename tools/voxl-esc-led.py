@@ -46,32 +46,42 @@ args = parser.parse_args()
 devpath  = args.device
 baudrate = args.baud_rate
 
+if devpath is not None and baudrate is None:
+    print 'ERROR: Please provide baud rate with --baud-rate option'
+    sys.exit(1)
+
 if devpath is None:
+    print 'INFO: Device and baud rate are not provided, attempting to autodetect..'
     scanner = SerialScanner()
     (devpath, baudrate) = scanner.scan()
 
     if devpath is not None and baudrate is not None:
         print ''
-        print 'ESC(s) detected on port: ' + devpath + ' using baudrate: ' + str(baudrate)
-        print 'Attempting to open...'
+        print 'INFO: ESC(s) detected on port: ' + devpath + ' using baudrate: ' + str(baudrate)
+        print 'INFO: Attempting to open...'
     else:
-        print 'No ESC(s) detected, exiting.'
+        print 'ERROR: No ESC(s) detected, exiting.'
         sys.exit(1)
 
 # create ESC manager and search for ESCs
-manager = EscManager()
-manager.open(devpath, baudrate)
+try:
+    esc_manager = EscManager()
+    esc_manager.open(devpath, baudrate)
+except Exception as e:
+    print 'ERROR: Unable to connect to ESCs :'
+    print e
+    sys.exit(1)
 
 # wait a little to let manager find all ESCs
-time.sleep(1)
-num_escs = len(manager.get_escs())
+time.sleep(0.25)
+num_escs = len(esc_manager.get_escs())
 if num_escs < 1:
-    print 'No ESCs detected--exiting.'
+    print 'ERROR: No ESCs detected--exiting.'
     sys.exit(0)
 
-escs = manager.get_escs()
+escs = esc_manager.get_escs()
 
-print 'Running LED Test...'
+print 'INFO: Running LED Test...'
 update_cntr = 0
 t_start = time.time()
 #while time.time() - t_start < timeout:
@@ -89,5 +99,5 @@ while True:
         esc.set_target_power(0)
         esc.set_leds([led_red, led_green, led_blue])  #0 or 1 for R G and B values.. binary for now
 
-    manager.send_pwm_targets()  #led colors are sent along the power commands in the same packet
+    esc_manager.send_pwm_targets()  #led colors are sent along the power commands in the same packet
     #note that status LED will also blink, since it blinks when ESC receives commands
