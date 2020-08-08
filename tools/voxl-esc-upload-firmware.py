@@ -85,16 +85,19 @@ finally:
     f.close()
 
 # reset the required ESC so that it can enter bootloader
-try:
-    esc_manager = EscManager()
-    esc_manager.open(devpath, firmware_baud_rate)
-except Exception as e:
-    print 'WARNING: Unable to connect to ESCs in order to reset them..:'
-    print e
-    print 'WARGING: Attempting to continue'
+esc_manager = EscManager()
+if firmware_baud_rate is not None:
+    try:
+        esc_manager.open(devpath, firmware_baud_rate)
+    except Exception as e:
+        print 'WARNING: Unable to detect ESCs in order to reset them..:'
+        print e
+        print 'WARGING: Attempting to continue'
 
-    #since we did not find ESCs with firmware, we can't send the reset message
-    #so, just try to establish communication with bootloader
+        #since we did not find ESCs with firmware, we can't send the reset message
+        #so, just try to establish communication with bootloader
+        esc_manager.open(devpath, bootloader_baud_rate)
+else:
     esc_manager.open(devpath, bootloader_baud_rate)
 
 time.sleep(0.25)
