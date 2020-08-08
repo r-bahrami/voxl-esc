@@ -78,10 +78,13 @@ print 'INFO: ---------------------'
 time.sleep(0.2)
 for e in esc_manager.get_escs():
     versions = e.get_versions()
+    uid      = e.get_uid()
     hardware_name = 'Unknown Board'
     if versions[1] == 30:
         hardware_name = 'ModalAi 4-in-1 ESC V2 RevA'
-    print 'INFO: ID: %d, SW: %d, HW: %d (%s)' % (e.get_id(), versions[0], versions[1],hardware_name)
+    print('INFO: ID: %d, SW: %d, HW: %d, UID:' % (e.get_id(), versions[0], versions[1])),
+    print('0x{},'.format(''.join(hex(x).lstrip("0x") for x in uid[::-1]))),
+    print('(%s)' % (hardware_name))
 print '---------------------'
 
 esc_manager.close()
