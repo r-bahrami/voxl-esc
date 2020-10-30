@@ -11,10 +11,12 @@
 # Software Setup
 - download voxl-esc tools and install any required prerequisites
  - see instructions at https://gitlab.com/voxl-public/voxl-esc/-/tree/master/tools
-- locate an existing tuning params file that most closely matches the motor that you have, upload it
+- locate an existing tuning params file that most closely matches the motor that you have
+- make a copy of the existing params file and update it if needed
     - specifically, make sure that ```num_cycles_per_rev``` is correct (usually 6 or 7 corresponding to number of pole pairs), otherwise RPM will not be calculated correctly
     - set ```vbat_nomival_mv``` to nominal battery voltage
     - leave other parameters the same, as they may not be known
+    - upload the params file ```python voxl-esc-upload-params.py --params-file ../params/<params_file>.xml```
 
 # Detect ESC and Perform a Quick Spin Test
 - detect the ESCs, make sure the software is the same version
@@ -38,6 +40,7 @@
  - ```pwm_vs_rpm_curve_a0, pwm_vs_rpm_curve_a1, pwm_vs_rpm_curve_a2```
  - ```min_rpm``` and ```max_rpm```. Note that max rpm will depend on battery voltage, but it is a good practice to just use maximum RPM at nominal voltage (or lowest voltage). minimum rpm can be taked from 10% power and maximum from 95% power. However, do not command 95% power using voxl-esc-spin.py, since there is no limiting in power mode (as opposed to RPM) and motor can burn out.
 - upload the calibration file to all ESCs. This will also reboot all the ESCs.
+ - ```python voxl-esc-upload-params.py --params-file ../params/<params_file>.xml```
 - validate the esc parameters: ```python voxl-esc-verify-params.py```
 
 ## Test ESC using RPM commands
