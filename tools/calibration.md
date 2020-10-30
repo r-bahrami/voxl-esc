@@ -20,6 +20,7 @@
 - detect the ESCs, make sure the software is the same version
  - ```python voxl-esc-scan.py```
 - do a quick spin at lower power (10%)
+ - ```python voxl-esc-spin.py --id 0 --power 10```
  - make sure the propeller is spinning in the correct direction (CW or CCW depending on propeller). Reverse one pair of motor wires to switch direction if needed
  - compare RPM to what is reported by tachometer
  - do not command very large power (open loop commands), since it will result in a very large step (less than 30)
