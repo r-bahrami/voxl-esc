@@ -35,7 +35,7 @@
   - this will step the motor through a range of power from 10% to 95%
 
 
-##Update and Upload Calibration File
+## Update and Upload Calibration File
 - update calibration parameters file printed by the calibration script
  - ```pwm_vs_rpm_curve_a0, pwm_vs_rpm_curve_a1, pwm_vs_rpm_curve_a2```
  - ```min_rpm``` and ```max_rpm```. Note that max rpm will depend on battery voltage, but it is a good practice to just use maximum RPM at nominal voltage (or lowest voltage). minimum rpm can be taked from 10% power and maximum from 95% power. However, do not command 95% power using voxl-esc-spin.py, since there is no limiting in power mode (as opposed to RPM) and motor can burn out.
