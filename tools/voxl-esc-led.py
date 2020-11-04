@@ -86,7 +86,7 @@ update_cntr = 0
 t_start = time.time()
 #while time.time() - t_start < timeout:
 while True:
-    time.sleep(0.01)
+    time.sleep(0.1)
     update_cntr += 1
 
     #cycle through red, green, blue
@@ -94,6 +94,13 @@ while True:
     led_red   = 1 if  dt<1           else 0
     led_green = 1 if (dt>1 and dt<2) else 0
     led_blue  = 1 if (dt>2)          else 0
+
+    if led_red:
+        print('RED')
+    elif led_green:
+        print('GREEN')
+    elif led_blue:
+        print('BLUE')
 
     for esc in escs:
         esc.set_target_power(0)
