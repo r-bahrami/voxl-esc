@@ -63,36 +63,38 @@ led_red  = int(args.led_red > 0)
 led_green= int(args.led_green > 0)
 led_blue = int(args.led_blue > 0)
 
+MAX_SAFE_RPM = 30000
+
 #optionally skip the safety prompt that asks to enter "yes" before spinning
 skip_prompt = 'True' in args.skip_prompt or 'true' in args.skip_prompt
 
 if devpath is not None and baudrate is None:
-    print 'ERROR: Please provide baud rate with --baud-rate option'
+    print('ERROR: Please provide baud rate with --baud-rate option')
     sys.exit(1)
 
-if spin_pwr < 0 or spin_pwr > 100:
-    print "ERROR: Spin power must be between 0 and 100"
+if spin_pwr < -100 or spin_pwr > 100:
+    print('ERROR: Spin power must be between -100 and 100')
     sys.exit(1)
 
-if spin_rpm is not None and (spin_rpm < 0 or spin_rpm > 30000):
-    print "ERROR: Spin rpm must be between 0 and 30000"
+if spin_rpm is not None and (spin_rpm < -MAX_SAFE_RPM or spin_rpm > MAX_SAFE_RPM):
+    print('ERROR: Spin rpm must be between %d and %d' % (-MAX_SAFE_RPM,MAX_SAFE_RPM))
     sys.exit(1)
 
 if timeout < 0:
-    print "ERROR: Timeout should be non-negative value of seconds"
+    print('ERROR: Timeout should be non-negative value of seconds')
     sys.exit(1)
 
 if devpath is None:
-    print 'INFO: Device and baud rate are not provided, attempting to autodetect..'
+    print('INFO: Device and baud rate are not provided, attempting to autodetect..')
     scanner = SerialScanner()
     (devpath, baudrate) = scanner.scan()
 
     if devpath is not None and baudrate is not None:
-        print ''
-        print 'INFO: ESC(s) detected on port: ' + devpath + ' using baudrate: ' + str(baudrate)
-        print 'INFO: Attempting to open...'
+        print('')
+        print('INFO: ESC(s) detected on port: ' + devpath + ' using baudrate: ' + str(baudrate))
+        print('INFO: Attempting to open...')
     else:
-        print 'ERROR: No ESC(s) detected, exiting.'
+        print('ERROR: No ESC(s) detected, exiting.')
         sys.exit(1)
 
 # create ESC manager and search for ESCs
@@ -100,7 +102,7 @@ try:
     esc_manager = EscManager()
     esc_manager.open(devpath, baudrate)
 except Exception as e:
-    print 'ERROR: Unable to connect to ESCs :'
+    print('ERROR: Unable to connect to ESCs :')
     print e
     sys.exit(1)
 
@@ -108,14 +110,14 @@ except Exception as e:
 time.sleep(0.25)
 num_escs = len(esc_manager.get_escs())
 if num_escs < 1:
-    print 'ERROR: No ESCs detected--exiting.'
+    print('ERROR: No ESCs detected--exiting.')
     sys.exit(1)
 
 escs = []
 if esc_id != 255:
     esc = esc_manager.get_esc_by_id(esc_id)
     if esc is None:
-        print 'ERROR: Specified ESC ID not found--exiting.'
+        print('ERROR: Specified ESC ID not found--exiting.')
         sys.exit(1)
     escs.append(esc)
 else:
@@ -123,19 +125,19 @@ else:
 
 # warn user
 if not skip_prompt:
-    print 'WARNING: '
-    print 'This test requires motors to spin at high speeds with'
-    print 'propellers attached. Please ensure that appropriate'
-    print 'protective equipment is being worn at all times and'
-    print 'that the motor and propeller are adequately isolated'
-    print 'from all persons.'
-    print ''
-    print 'For best results, please perform this test at the'
-    print 'nominal voltage for the battery used.'
-    print ''
+    print('WARNING: ')
+    print('This test requires motors to spin at high speeds with')
+    print('propellers attached. Please ensure that appropriate')
+    print('protective equipment is being worn at all times and')
+    print('that the motor and propeller are adequately isolated')
+    print('from all persons.')
+    print('')
+    print('For best results, please perform this test at the')
+    print('nominal voltage for the battery used.')
+    print('')
     response = raw_input('Type "Yes" to continue: ')
     if response not in ['yes', 'Yes', 'YES']:
-        print 'Test canceled by user'
+        print('Test canceled by user')
         sys.exit(1)
 
 # spin up
@@ -161,4 +163,4 @@ while time.time() - t_start < timeout:
         esc_manager.send_pwm_targets()
 
     for esc in escs:
-        print '[%d] RPM: %.0f, PWR: %.0f, VBAT: %.2fV, TEMPERATURE: %.2fC, CURRENT: %.2fA' % (esc.get_id(), esc.get_rpm(), esc.get_power(), esc.get_voltage(), esc.get_temperature(), esc.get_current())
+        print('[%d] RPM: %.0f, PWR: %.0f, VBAT: %.2fV, TEMPERATURE: %.2fC, CURRENT: %.2fA' % (esc.get_id(), esc.get_rpm(), esc.get_power(), esc.get_voltage(), esc.get_temperature(), esc.get_current()))
