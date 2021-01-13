@@ -1,12 +1,18 @@
+# When is ESC Calibration Required?
+- when a new type of motor or new type of propeller is used
+- when switching battery types (from 3S LiPo to 4S LiPo, etc)
+
 # Hardware Setup
 - use a power supply (not battery.. for safety)
 - set voltage to nominal battery voltage (7.5V for 2S, 11.3V for 3S, 15V for 4S)
 - make sure the power supply can handle the maximum motor current. If not, you will see the voltage drop towards the end of the test (power supply limiting) and the calibration will be invalid
-- use appropriate wire gauge for the maximum current (usually 18 or 16 gauge is OK)
+- use appropriate wire gauge for the maximum current (usually 18 or 16 gauge is OK) and try to minimize the length of the power cable
+- identify the motor that will be used for tuning and attach the propeller of choice
+- make sure the frame with the motor is firmly attached to some platform and cannot move when thrust is applied
 - connect power connector from power supply to ESC
 - connect UART adapter to PC / Laptop
-- apply power and make sure there are no unusual sounds or smell
-- check current when motors not spinning
+- apply power and make sure there are no unusual sounds or smell (besides the short beep ESC makes with motors when power is applied)
+- check current when motors not spinning (idle current of a 4-in-1 ESC should be less than 0.1A)
 
 # Software Setup
 - download voxl-esc tools and install any required prerequisites
