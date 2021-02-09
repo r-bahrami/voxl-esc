@@ -83,7 +83,7 @@ esc_ids = [e.get_id() for e in escs]
 if len(escs) == 0:
     print 'ERROR: No ESCs detected, exiting.'
     esc_manager.close()
-    sys.exit(0)
+    sys.exit(1)
 print 'INFO: ESCs detected:'
 print 'INFO: ---------------------'
 

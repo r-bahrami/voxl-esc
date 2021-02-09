@@ -46,45 +46,54 @@ devpath  = args.device
 baudrate = args.baud_rate
 
 if devpath is not None and baudrate is None:
-    print 'ERROR: Please provide baud rate with --baud-rate option'
+    print('ERROR: Please provide baud rate with --baud-rate option')
     sys.exit(1)
 
 if devpath is None:
-    print 'INFO: Device and baud rate are not provided, attempting to autodetect..'
+    print('INFO: Device and baud rate are not provided, attempting to autodetect..')
     scanner = SerialScanner()
     (devpath, baudrate) = scanner.scan()
 
     if devpath is not None and baudrate is not None:
-        print ''
-        print 'INFO: ESC(s) detected on port: ' + devpath + ' using baudrate: ' + str(baudrate)
-        print 'INFO: Attempting to open...'
+        print('')
+        print('INFO: ESC(s) detected on port: ' + devpath + ' using baudrate: ' + str(baudrate))
+        print('INFO: Attempting to open...')
     else:
-        print 'ERROR: No ESC(s) detected, exiting.'
+        print('ERROR: No ESC(s) detected, exiting.')
         sys.exit(1)
 
 try:
     esc_manager = EscManager()
     esc_manager.open(devpath, baudrate)
 except Exception as e:
-    print 'ERROR: Unable to connect to ESCs :'
+    print('ERROR: Unable to connect to ESCs :')
     print e
     sys.exit(1)
 
 # wait a little to let manager find all ESCs
 time.sleep(0.25)
 
-print 'INFO: Detected ESCs With Firmware:'
-print 'INFO: ---------------------'
+print('INFO: Detected ESCs With Firmware:')
+print('INFO: ---------------------')
 time.sleep(0.2)
 for e in esc_manager.get_escs():
-    versions = e.get_versions()
-    uid      = e.get_uid()
+    versions      = e.get_versions()
+    uid           = e.get_uid()
+    fw_git_hash   = e.get_sw_git_hash()
+    boot_git_hash = e.get_boot_git_hash()
+    boot_version  = e.get_boot_version()
     hardware_name = 'Unknown Board'
     if versions[1] == 30:
         hardware_name = 'ModalAi 4-in-1 ESC V2 RevA'
-    print('INFO: ID: %d, SW: %d, HW: %d, UID:' % (e.get_id(), versions[0], versions[1])),
-    print('0x{},'.format(''.join(hex(x).lstrip("0x") for x in uid[::-1]))),
-    print('(%s)' % (hardware_name))
-print '---------------------'
+    elif versions[1] == 31:
+        hardware_name = 'ModalAi 4-in-1 ESC V2 RevB'
+    print('\tID         : %d' % (e.get_id()))
+    print('\tBoard      : version %d: %s' % (versions[1],hardware_name))
+    print('\tUID        :'),
+    print('0x{}'.format(''.join(hex(x).lstrip("0x") for x in uid[::-1])))
+    print('\tFirmware   : version %4d, hash %s' % (versions[0],fw_git_hash))
+    print('\tBootloader : version %4d, hash %s' % (boot_version, boot_git_hash))
+    print('')
+print('---------------------')
 
 esc_manager.close()
