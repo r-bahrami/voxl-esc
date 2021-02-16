@@ -35,6 +35,7 @@ import sys
 sys.path.append('./voxl-esc-tools-bin')
 
 from libesc import *
+from esc_scanner import EscScanner
 import time
 import numpy as np
 import argparse
@@ -53,22 +54,15 @@ esc_id   = args.id
 PWM_MIN  = args.pwm_min
 PWM_MAX  = args.pwm_max
 
-if devpath is not None and baudrate is None:
-    print 'ERROR: Please provide baud rate with --baud-rate option'
+# quick scan for ESCs to detect the port
+scanner = EscScanner()
+(devpath, baudrate) = scanner.scan(devpath, baudrate)
+
+if devpath is not None and baudrate is not None:
+    print('INFO: ESC(s) detected on port: ' + devpath + ', baud rate: ' + str(baudrate))
+else:
+    print('ERROR: No ESC(s) detected, exiting.')
     sys.exit(1)
-
-if devpath is None:
-    print 'INFO: Device and baud rate are not provided, attempting to autodetect..'
-    scanner = SerialScanner()
-    (devpath, baudrate) = scanner.scan()
-
-    if devpath is not None and baudrate is not None:
-        print ''
-        print 'INFO: ESC(s) detected on port: ' + devpath + ' using baudrate: ' + str(baudrate)
-        print 'INFO: Attempting to open...'
-    else:
-        print 'ERROR: No ESC(s) detected, exiting.'
-        sys.exit(1)
 
 #check input arguments
 if PWM_MIN < 10 or PWM_MIN > 50:
