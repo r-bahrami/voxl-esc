@@ -35,6 +35,7 @@ import sys
 sys.path.append('./voxl-esc-tools-bin')
 
 from libesc import *
+from esc_scanner import EscScanner
 import argparse
 
 parser = argparse.ArgumentParser(description='ESC Params Verification Script')
@@ -49,20 +50,15 @@ baudrate    = args.baud_rate
 num_escs    = args.num_escs
 save_params = args.save_params
 
-if devpath is not None and baudrate is None:
-    print 'ERROR: Please provide baud rate with --baud-rate option'
+# quick scan for ESCs to detect the port
+scanner = EscScanner()
+(devpath, baudrate) = scanner.scan(devpath, baudrate)
+
+if devpath is not None and baudrate is not None:
+    print('INFO: ESC(s) detected on port: ' + devpath + ', baud rate: ' + str(baudrate))
+else:
+    print('ERROR: No ESC(s) detected, exiting.')
     sys.exit(1)
-
-if devpath is None:
-    print 'INFO: Device and baud rate are not provided, attempting to autodetect..'
-    scanner = SerialScanner()
-    (devpath, baudrate) = scanner.scan()
-
-    if devpath is not None and baudrate is not None:
-        print 'INFO: ESC(s) detected on port: ' + devpath + ' using baudrate: ' + str(baudrate)
-    else:
-        print 'ERROR: No ESC(s) detected, exiting.'
-        sys.exit(1)
 
 try:
     esc_manager = EscManager()
@@ -72,9 +68,7 @@ except Exception as e:
     print e
     sys.exit(1)
 
-print 'INFO: Successuflly opened serial port %s @ %s' % (devpath,baudrate)
-
-# wait a little to let manager find all ESCs
+# wait a little to let manager find all ESCs and get info
 time.sleep(0.25)
 
 escs = esc_manager.get_escs()
@@ -129,7 +123,7 @@ for esc_id in esc_ids:
         num_params_match += 1
 
 if num_escs == len(esc_ids) and num_params_match == num_escs and num_invalid_params == 0:
-    print 'INFO: Params in all ESCs are valid and identical!'
+    print 'INFO: Success! Params in all ESCs are valid and identical.'
 else:
     print 'ERROR: Some params are invalid or not the same!'
     print '       Number of ESCs expected     : %d' % num_escs

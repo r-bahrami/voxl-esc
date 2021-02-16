@@ -36,6 +36,7 @@ sys.path.append('./voxl-esc-tools-bin')
 
 #from libesc.escmanager import EscManager
 from libesc import *
+from esc_scanner import EscScanner
 import time
 import numpy as np
 from libesc.esctypes import EscTypes as types
@@ -56,19 +57,15 @@ bootloader_baud_rate = args.bootloader_baud_rate
 firmware_file        = args.firmware_file
 esc_id               = args.id
 
-# if the device path is not provided, attempt to find a device with ESCs
-if devpath is None:
-    print 'INFO: Device and baud rate are not provided, attempting to autodetect..'
-    scanner = SerialScanner()
-    (devpath, firmware_baud_rate) = scanner.scan()
+# quick scan for ESCs to detect the port
+scanner = EscScanner()
+(devpath, firmware_baud_rate) = scanner.scan(devpath, firmware_baud_rate)
 
-    if devpath is not None and firmware_baud_rate is not None:
-        print ''
-        print 'INFO: ESC(s) detected on port: ' + devpath + ' using baudrate: ' + str(firmware_baud_rate)
-        print 'INFO: Attempting to open...'
-    else:
-        print 'ERROR: No ESC(s) detected, exiting.'
-        sys.exit(1)
+if devpath is not None and firmware_baud_rate is not None:
+    print('INFO: ESC(s) detected on port: ' + devpath + ', baud rate: ' + str(firmware_baud_rate))
+else:
+    print('ERROR: No ESC(s) detected, exiting.')
+    sys.exit(1)
 
 # load file
 f = open(firmware_file, "rb")

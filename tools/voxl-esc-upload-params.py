@@ -36,6 +36,8 @@ sys.path.append('./voxl-esc-tools-bin')
 
 from libesc import *
 from libesc.esctypes import EscTypes as types
+from esc_scanner import EscScanner
+from esc_boards import *
 import time
 import argparse
 
@@ -51,22 +53,15 @@ baudrate      = args.baud_rate
 params_file   = args.params_file
 params_filter = args.params_filter
 
-if devpath is not None and baudrate is None:
-    print 'ERROR: Please provide baud rate with --baud-rate option'
+# quick scan for ESCs to detect the port
+scanner = EscScanner()
+(devpath, baudrate) = scanner.scan(devpath, baudrate)
+
+if devpath is not None and baudrate is not None:
+    print('INFO: ESC(s) detected on port: ' + devpath + ', baud rate: ' + str(baudrate))
+else:
+    print('ERROR: No ESC(s) detected, exiting.')
     sys.exit(1)
-
-if devpath is None:
-    print 'INFO: Device and baud rate are not provided, attempting to autodetect..'
-    scanner = SerialScanner()
-    (devpath, baudrate) = scanner.scan()
-
-    if devpath is not None and baudrate is not None:
-        print ''
-        print 'INFO: ESC(s) detected on port: ' + devpath + ' using baudrate: ' + str(baudrate)
-        print 'INFO: Attempting to open...'
-    else:
-        print 'ERROR: No ESC(s) detected, exiting.'
-        sys.exit(1)
 
 # create ESC manager and search for ESCs
 try:
@@ -89,7 +84,8 @@ print 'INFO: ---------------------'
 
 for e in esc_manager.get_escs():
     versions = e.get_versions()
-    print 'ID: %d, SW: %d, HW: %d' % (e.get_id(), versions[0], versions[1])
+    hardware_name = get_esc_board_description(versions[1])
+    print 'ID: %d, SW: %d, HW: %s' % (e.get_id(), versions[0], hardware_name)
 print '---------------------'
 
 esc = esc_manager.esc_dummy

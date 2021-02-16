@@ -35,6 +35,8 @@ import sys
 sys.path.append('./voxl-esc-tools-bin')
 
 from libesc import *
+from esc_scanner import EscScanner
+from esc_boards import *
 import argparse
 
 parser = argparse.ArgumentParser(description='ESC Scan Script')
@@ -44,23 +46,18 @@ args = parser.parse_args()
 
 devpath  = args.device
 baudrate = args.baud_rate
+protocol = 'None'
 
-if devpath is not None and baudrate is None:
-    print('ERROR: Please provide baud rate with --baud-rate option')
+scanner = EscScanner()
+(devpath, baudrate) = scanner.scan(devpath, baudrate)
+
+if devpath is not None and baudrate is not None:
+    protocol = scanner.get_protocol()
+    print('INFO: ESC(s) detected on port: ' + devpath + ', baud rate: ' + str(baudrate))
+    print('INFO: Detected protocol: ' + protocol)
+else:
+    print('ERROR: No ESC(s) detected, exiting.')
     sys.exit(1)
-
-if devpath is None:
-    print('INFO: Device and baud rate are not provided, attempting to autodetect..')
-    scanner = SerialScanner()
-    (devpath, baudrate) = scanner.scan()
-
-    if devpath is not None and baudrate is not None:
-        print('')
-        print('INFO: ESC(s) detected on port: ' + devpath + ' using baudrate: ' + str(baudrate))
-        print('INFO: Attempting to open...')
-    else:
-        print('ERROR: No ESC(s) detected, exiting.')
-        sys.exit(1)
 
 try:
     esc_manager = EscManager()
@@ -73,20 +70,17 @@ except Exception as e:
 # wait a little to let manager find all ESCs
 time.sleep(0.25)
 
-print('INFO: Detected ESCs With Firmware:')
+print('INFO: Additional Information:')
 print('INFO: ---------------------')
-time.sleep(0.2)
+time.sleep(0.1)
 for e in esc_manager.get_escs():
     versions      = e.get_versions()
     uid           = e.get_uid()
     fw_git_hash   = e.get_sw_git_hash()
     boot_git_hash = e.get_boot_git_hash()
     boot_version  = e.get_boot_version()
-    hardware_name = 'Unknown Board'
-    if versions[1] == 30:
-        hardware_name = 'ModalAi 4-in-1 ESC V2 RevA'
-    elif versions[1] == 31:
-        hardware_name = 'ModalAi 4-in-1 ESC V2 RevB'
+    hardware_name = get_esc_board_description(versions[1])
+
     print('\tID         : %d' % (e.get_id()))
     print('\tBoard      : version %d: %s' % (versions[1],hardware_name))
     print('\tUID        :'),

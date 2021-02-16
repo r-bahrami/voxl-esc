@@ -35,6 +35,7 @@ import sys
 sys.path.append('./voxl-esc-tools-bin')
 
 from libesc import *
+from esc_scanner import EscScanner
 import time
 import numpy as np
 import argparse
@@ -68,10 +69,6 @@ MAX_SAFE_RPM = 30000
 #optionally skip the safety prompt that asks to enter "yes" before spinning
 skip_prompt = 'True' in args.skip_prompt or 'true' in args.skip_prompt
 
-if devpath is not None and baudrate is None:
-    print('ERROR: Please provide baud rate with --baud-rate option')
-    sys.exit(1)
-
 if spin_pwr < -100 or spin_pwr > 100:
     print('ERROR: Spin power must be between -100 and 100')
     sys.exit(1)
@@ -84,18 +81,16 @@ if timeout < 0:
     print('ERROR: Timeout should be non-negative value of seconds')
     sys.exit(1)
 
-if devpath is None:
-    print('INFO: Device and baud rate are not provided, attempting to autodetect..')
-    scanner = SerialScanner()
-    (devpath, baudrate) = scanner.scan()
+# quick scan for ESCs to detect the port
+scanner = EscScanner()
+(devpath, baudrate) = scanner.scan(devpath, baudrate)
 
-    if devpath is not None and baudrate is not None:
-        print('')
-        print('INFO: ESC(s) detected on port: ' + devpath + ' using baudrate: ' + str(baudrate))
-        print('INFO: Attempting to open...')
-    else:
-        print('ERROR: No ESC(s) detected, exiting.')
-        sys.exit(1)
+if devpath is not None and baudrate is not None:
+    print('INFO: ESC(s) detected on port: ' + devpath + ', baud rate: ' + str(baudrate))
+else:
+    print('ERROR: No ESC(s) detected, exiting.')
+    sys.exit(1)
+
 
 # create ESC manager and search for ESCs
 try:
