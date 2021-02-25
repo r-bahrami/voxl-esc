@@ -47,11 +47,12 @@ parser.add_argument('--baud-rate',              required=False, default=None)
 parser.add_argument('--id',          type=int,  required=True,  default=0)
 parser.add_argument('--power',       type=int,  required=False, default=10)
 parser.add_argument('--rpm',         type=int,  required=False, default=None)
-parser.add_argument('--timeout',     type=int,  required=False, default=10000)
+parser.add_argument('--timeout',     type=int,  required=False, default=0)
 parser.add_argument('--skip-prompt', type=str,  required=False, default='False')
 parser.add_argument('--led-red',     type=int,  required=False, default=0)
 parser.add_argument('--led-green',   type=int,  required=False, default=0)
 parser.add_argument('--led-blue',    type=int,  required=False, default=0)
+parser.add_argument('--cmd-rate',    type=int,  required=False, default=100)
 args = parser.parse_args()
 
 devpath  = args.device
@@ -63,6 +64,7 @@ timeout  = args.timeout
 led_red  = int(args.led_red > 0)
 led_green= int(args.led_green > 0)
 led_blue = int(args.led_blue > 0)
+cmd_rate = args.cmd_rate
 
 MAX_SAFE_RPM = 30000
 
@@ -79,6 +81,10 @@ if spin_rpm is not None and (spin_rpm < -MAX_SAFE_RPM or spin_rpm > MAX_SAFE_RPM
 
 if timeout < 0:
     print('ERROR: Timeout should be non-negative value of seconds')
+    sys.exit(1)
+
+if cmd_rate < 10:
+    print('ERROR: Command rate is too low, the ESC will timeout')
     sys.exit(1)
 
 # quick scan for ESCs to detect the port
@@ -144,9 +150,9 @@ for esc in escs:
 
 t_start = time.time()
 update_cntr = 0
-while time.time() - t_start < timeout:
+while timeout == 0 or time.time() - t_start < timeout:
     update_cntr += 1
-    time.sleep(0.01)
+    time.sleep(1.0/cmd_rate)
 
     if spin_rpm is not None:
         for esc in escs:
@@ -159,3 +165,5 @@ while time.time() - t_start < timeout:
 
     for esc in escs:
         print('[%d] RPM: %.0f, PWR: %.0f, VBAT: %.2fV, TEMPERATURE: %.2fC, CURRENT: %.2fA' % (esc.get_id(), esc.get_rpm(), esc.get_power(), esc.get_voltage(), esc.get_temperature(), esc.get_current()))
+
+print('Finished!')
