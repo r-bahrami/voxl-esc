@@ -43,7 +43,7 @@ class EscScanner:
     firmware_baudrates   = (250000, 921600, 230400, 57600, 115200, 2000000, 6000000)
     bootloader_baudrates = (38400, 230400)
     is_voxl              = False
-    uart_port_desc       = ['uart','serial','vcp']
+    uart_port_desc       = ['uart','serial','vcp','ttl232','stlink']
     protocol_type        = None
 
     def __init__(self):
