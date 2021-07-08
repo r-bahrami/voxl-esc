@@ -46,6 +46,8 @@ parser.add_argument('--baud_rate',           required=False, default=None)
 parser.add_argument('--id',        type=int, required=False, default=0)
 parser.add_argument('--pwm-min',   type=int, required=False, default=10)
 parser.add_argument('--pwm-max',   type=int, required=False, default=90)
+parser.add_argument('--pwm-step',  type=int, required=False, default=1)
+parser.add_argument('--pwm-step-duration',  type=float, required=False, default=0.5) #seconds
 args = parser.parse_args()
 
 devpath  = args.device
@@ -53,6 +55,8 @@ baudrate = args.baud_rate
 esc_id   = args.id
 PWM_MIN  = args.pwm_min
 PWM_MAX  = args.pwm_max
+PWM_STEP = args.pwm_step
+STEPDURATION = args.pwm_step_duration
 
 # quick scan for ESCs to detect the port
 scanner = EscScanner()
@@ -78,8 +82,6 @@ if PWM_MAX < PWM_MIN:
     sys.exit(1)
 
 # PWM goal
-PWM_STEP       = 1
-STEPDURATION   = 0.50 #seconds
 TRANSITIONTIME = 0.40
 
 # create ESC manager and search for ESCs
@@ -134,8 +136,8 @@ measurements = []
 t_test_start= time.time()
 
 # ramp up from min to max
-pwm_now = 10
-while pwm_now < PWM_MAX:
+pwm_now = PWM_MIN #10
+while pwm_now <= PWM_MAX:
     esc.set_target_power(pwm_now)
     t_start = time.time()
     print ''
