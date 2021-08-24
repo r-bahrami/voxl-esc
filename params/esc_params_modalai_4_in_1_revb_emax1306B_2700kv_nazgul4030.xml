@@ -50,7 +50,7 @@ For a license to use on non-ModalAI hardware, please contact license@modalai.com
   <UartParams>
     <param name="protocol_version" value="2"/>          <!-- reserved for future use -->
     <param name="input_mode"       value="0"/>          <!-- reserved for future use -->
-    <param name="baud_rate"        value="921600"/>    <!-- communication bit rate -->
+    <param name="baud_rate"        value="250000"/>    <!-- communication bit rate -->
     <param name="char_timeout_ns"  value="0"/>          <!-- not used -->
     <param name="cmd_timeout_ns"   value="100000000"/>  <!-- timeout for incoming commands before ESC will stop the motor -->
   </UartParams>
