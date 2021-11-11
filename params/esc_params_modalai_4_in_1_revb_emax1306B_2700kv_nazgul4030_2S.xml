@@ -57,15 +57,15 @@ For a license to use on non-ModalAI hardware, please contact license@modalai.com
 
   <TuneParams>
     <param name="pwm_frequency"       value="48000"/>  <!-- switching freqency of PWM signal going to motors. 24Khz and 48Khz are only options for now -->
-    <param name="vbat_nominal_mv"     value="74000"/>  <!-- used for sanity checking and limiting of voltage-dependent funcions -->
+    <param name="vbat_nominal_mv"     value="7400"/>  <!-- used for sanity checking and limiting of voltage-dependent funcions -->
     <param name="num_cycles_per_rev"  value="6"/>      <!-- number of pole pairs in the motor. used for converting electrical frequency to mechanical rpm -->
     <param name="min_rpm"             value="5000"/>   <!-- minimum RPM that will be attempted, otherwise capped -->
     <param name="max_rpm"             value="15500"/>  <!-- maximum RPM that will be attempted, otherwise capped -->
     <param name="min_pwm"             value="50"/>     <!-- cap for minimum power to be ever applied. max is 999 -->
     <param name="max_pwm"             value="999"/>    <!-- cap for maximum power to be ever applied. max is 999 -->
-    <param name="pwm_vs_rpm_curve_a0" value="9.231360711675826"/>  <!-- this is actually motor_voltage vs rpm curve.. using legacy naming -->
-    <param name="pwm_vs_rpm_curve_a1" value="0.3843235627614618"/> <!-- Emax RS1106 4500KV with gemfan 3025 -->
-    <param name="pwm_vs_rpm_curve_a2" value="6.031400864086321e-06"/>
+    <param name="pwm_vs_rpm_curve_a0" value="14.895966640427012"/>  <!-- this is actually motor_voltage vs rpm curve.. using legacy naming -->
+    <param name="pwm_vs_rpm_curve_a1" value="0.38307402414743014"/>
+    <param name="pwm_vs_rpm_curve_a2" value="6.147654796678008e-06"/>
     <param name="kp"                  value="100"/>    <!-- RPM controller proportional gain -->
     <param name="ki"                  value="30"/>     <!-- RPM controller proportional gain -->
     <param name="max_kpe"             value="300"/>    <!-- maximum proportional erorr term (max is 999) -->
