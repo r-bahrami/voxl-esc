@@ -2,8 +2,9 @@
 VOXL ESC Tools is a Python software package which allows testing, calibration and diagnostics of ESCs using a PC. Note that a compatible ESC from ModalAi is required.
 
 ## Hardware Requirements
-- Compatible ESC (see [docs](https://docs.modalai.com/escs/) )
-- USB-to-serial adapter (3.3V signals) with a 6-pin Hirose DF13 connector (see [docs](https://docs.modalai.com/escs/) for pin-out)
+- Compatible ESC (see [docs](https://docs.modalai.com/modal-escs/) )
+- USB-to-serial adapter (3.3V signals) with a 6-pin Hirose DF13 connector (see [docs](https://docs.modalai.com/modal-esc-v2-manual/) for pin-out)
+ - use UART1 pins on the ESC V2 (UART2 is reserved for future use)
  - the device should appear as /dev/ttyUSBx on Linux machines and /dev/cu.usbserial-* on OSX
 - Fixed or adjustable power supply (check ESC data sheet for acceptable voltage), rated for at least several Amps (depending on tests being performed). Note that insufficient current capacity of the power supply may cause ESC reset or other undesired behavior.
 
