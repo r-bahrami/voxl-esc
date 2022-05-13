@@ -33,6 +33,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 For a license to use on non-ModalAI hardware, please contact license@modalai.com -->
 
+<!-- Sentinel v1 parameters for 3 cell battery, SunnySky 2216 880kv Motors & 10inch M-propellers -->
 <EscParameters>
 
   <IdParams>
