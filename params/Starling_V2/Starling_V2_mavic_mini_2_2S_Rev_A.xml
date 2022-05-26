@@ -59,7 +59,7 @@ For a license to use on non-ModalAI hardware, please contact license@modalai.com
     <param name="pwm_frequency"       value="48000"/>  <!-- switching freqency of PWM signal going to motors. 24Khz and 48Khz are only options for now -->
     <param name="vbat_nominal_mv"     value="7400"/>  <!-- used for sanity checking and limiting of voltage-dependent funcions -->
     <param name="num_cycles_per_rev"  value="7"/>      <!-- number of pole pairs in the motor. used for converting electrical frequency to mechanical rpm -->
-    <param name="min_rpm"             value="5000"/>   <!-- minimum RPM that will be attempted, otherwise capped -->
+    <param name="min_rpm"             value="1000"/>   <!-- minimum RPM that will be attempted, otherwise capped -->
     <param name="max_rpm"             value="19000"/>  <!-- maximum RPM that will be attempted, otherwise capped -->
     <param name="min_pwm"             value="50"/>     <!-- cap for minimum power to be ever applied. max is 999 -->
     <param name="max_pwm"             value="999"/>    <!-- cap for maximum power to be ever applied. max is 999 -->
@@ -83,7 +83,7 @@ For a license to use on non-ModalAI hardware, please contact license@modalai.com
 
     <param name="tone_freqs_10hz"     value="[176, 132, 88, 98]"/> <!-- 200 is 2000Hz, max 255 -->
     <param name="tone_times_ms"       value="[40, 40, 40, 40]"/>     <!-- duration of each tone in units of 10 milli-seconds. Poor naming!!! -->
-    <param name="tone_powers"         value="[100, 100, 100, 100]"/> <!-- max is 255 -->
+    <param name="tone_powers"         value="[30, 30, 30, 30]"/> <!-- max is 255 -->
 
     <param name="dt_threshold_ns"       value="150000"/>      <!-- during start up, ignore inter-commutation times less than this val, probably noise -->
     <param name="max_dt_ns"             value="2500000"/>     <!-- min and max values for time between two commutations. these are used as caps -->
