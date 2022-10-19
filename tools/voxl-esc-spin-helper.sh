@@ -17,5 +17,5 @@ read
 #use Python 2.7.xx
 for mot in {0..3}
 do
-   python voxl-esc-spin.py --device $DEVICE --baud-rate $BAUD --id $mot --power $POWER --timeout $TIMEOUT --skip-prompt True
+   python2.7 voxl-esc-spin.py --device $DEVICE --baud-rate $BAUD --id $mot --power $POWER --timeout $TIMEOUT --skip-prompt True
 done
