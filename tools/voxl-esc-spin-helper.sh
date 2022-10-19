@@ -9,7 +9,7 @@ TIMEOUT="5"
 
 echo "--- voxl esc spin helper ---"
 echo "WARNING: All motors will SPIN." 
-echo "Please remove all propellers, then press ANY key to proceed . . . "
+echo "Please remove all propellers, then press ENTER key to proceed . . . "
 
 #wait here
 read
